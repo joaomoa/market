@@ -60,10 +60,12 @@ const Market = (function () {
   let roundStartTime = null;
   let timerInterval = null;
 
+  const STORAGE_VERSION = 2; // Bump quando mudar preços iniciais ou config
   const STORAGE_KEYS = {
     assets: 'mini-bolsa-assets',
     round: 'mini-bolsa-round',
-    roundStartTime: 'mini-bolsa-round-start'
+    roundStartTime: 'mini-bolsa-round-start',
+    version: 'mini-bolsa-version'
   };
 
   function loadFromStorage() {
@@ -86,6 +88,7 @@ const Market = (function () {
     try {
       localStorage.setItem(STORAGE_KEYS.assets, JSON.stringify(assets));
       localStorage.setItem(STORAGE_KEYS.round, String(currentRound));
+      localStorage.setItem(STORAGE_KEYS.version, String(STORAGE_VERSION));
       if (roundStartTime) localStorage.setItem(STORAGE_KEYS.roundStartTime, String(roundStartTime));
     } catch (e) {
       console.warn('Erro a guardar localStorage:', e);
@@ -242,9 +245,11 @@ const Market = (function () {
 
   function initMarket() {
     const saved = loadFromStorage();
+    const savedVersion = parseInt(localStorage.getItem(STORAGE_KEYS.version) || '0', 10);
     const validIds = new Set(ASSET_IDS);
     const valid = saved && saved.assets && saved.assets.length === 4 &&
-      saved.assets.every(a => validIds.has(a.id));
+      saved.assets.every(a => validIds.has(a.id)) &&
+      savedVersion === STORAGE_VERSION;
 
     if (valid) {
       assets = saved.assets;
@@ -293,6 +298,7 @@ const Market = (function () {
 
     localStorage.setItem(STORAGE_KEYS.assets, JSON.stringify(assets));
     localStorage.setItem(STORAGE_KEYS.round, '1');
+    localStorage.setItem(STORAGE_KEYS.version, String(STORAGE_VERSION));
     localStorage.setItem(STORAGE_KEYS.roundStartTime, String(roundStartTime));
 
     updateUI();

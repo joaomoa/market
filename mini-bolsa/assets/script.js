@@ -12,28 +12,32 @@ const Market = (function () {
       name: 'Ouro',
       icon: '🟡',
       initialPrice: 2,
-      volatility: 1   // baixa: ±1
+      // Sobe lentamente: 0 ou +1
+      changes: [0, 0, 1, 1, 1]
     },
     house: {
       id: 'house',
       name: 'Casa',
       icon: '🏠',
       initialPrice: 5,
-      volatility: 2   // média: ±2
+      // Sobe devagar, às vezes um pouco mais rápido, raramente desce
+      changes: [-1, 0, 1, 1, 1, 1, 2]
     },
     empresa: {
       id: 'empresa',
       name: 'Empresa',
       icon: '🏢',
       initialPrice: 1,
-      volatility: 3   // alta: ±3
+      // Sobe bem mais rápido mas com volatilidade: pode subir muito ou cair
+      changes: [-2, -1, 0, 1, 1, 2, 2, 3, 3, 4]
     },
     carro: {
       id: 'carro',
       name: 'Carro',
       icon: '🚗',
       initialPrice: 3,
-      volatility: 1   // baixa: ±1
+      // Bens de consumo: descem quase sempre ou mantêm
+      changes: [-1, -1, -1, -1, 0, 0, 0]
     }
   };
 
@@ -41,19 +45,18 @@ const Market = (function () {
   const MIN_PRICE = 1;
   const MAX_PRICE = 10;
   const MAX_HISTORY = 20;
-  const TOTAL_ROUNDS = 5;
 
   let assets = [];
   let currentRound = 1;
   let lastChange = {};
   let chart = null;
-  let timerStart = null;
+  let roundStartTime = null;
   let timerInterval = null;
 
   const STORAGE_KEYS = {
     assets: 'mini-bolsa-assets',
     round: 'mini-bolsa-round',
-    timerStart: 'mini-bolsa-timer'
+    roundStartTime: 'mini-bolsa-round-start'
   };
 
   function loadFromStorage() {
@@ -63,8 +66,8 @@ const Market = (function () {
         const parsed = JSON.parse(data);
         const stored = Array.isArray(parsed) ? parsed : (parsed.assets || parsed);
         const round = parseInt(localStorage.getItem(STORAGE_KEYS.round) || '1', 10);
-        const timerStart = localStorage.getItem(STORAGE_KEYS.timerStart);
-        return { assets: stored, round, timerStart };
+        const roundStartTime = localStorage.getItem(STORAGE_KEYS.roundStartTime);
+        return { assets: stored, round, roundStartTime };
       }
     } catch (e) {
       console.warn('Erro a carregar localStorage:', e);
@@ -76,21 +79,20 @@ const Market = (function () {
     try {
       localStorage.setItem(STORAGE_KEYS.assets, JSON.stringify(assets));
       localStorage.setItem(STORAGE_KEYS.round, String(currentRound));
-      if (timerStart) localStorage.setItem(STORAGE_KEYS.timerStart, String(timerStart));
+      if (roundStartTime) localStorage.setItem(STORAGE_KEYS.roundStartTime, String(roundStartTime));
     } catch (e) {
       console.warn('Erro a guardar localStorage:', e);
     }
   }
 
-  /** Evolução aleatória baseada no perfil de risco (volatilidade) de cada ativo */
+  /** Evolução baseada no perfil de cada ativo (ouro sobe lentamente, carro desce, etc.) */
   function applyRandomEvolution() {
     lastChange = {};
 
     assets.forEach(asset => {
       const config = ASSET_CONFIG[asset.id];
-      const vol = config?.volatility ?? 1;
-      // Gera mudança entre -vol e +vol (ex: vol=1 → -1,0,+1)
-      const delta = Math.floor(Math.random() * (2 * vol + 1)) - vol;
+      const changes = config?.changes ?? [0];
+      const delta = changes[Math.floor(Math.random() * changes.length)];
 
       const oldPrice = asset.price;
       let newPrice = Math.round(oldPrice + delta);
@@ -108,12 +110,12 @@ const Market = (function () {
   }
 
   function nextRound() {
-    if (currentRound < TOTAL_ROUNDS) {
-      currentRound += 1;
-      applyRandomEvolution();
-      saveToStorage();
-      updateUI();
-    }
+    currentRound += 1;
+    roundStartTime = Date.now();
+    localStorage.setItem(STORAGE_KEYS.roundStartTime, String(roundStartTime));
+    applyRandomEvolution();
+    saveToStorage();
+    updateUI();
   }
 
   function updateUI() {
@@ -138,7 +140,7 @@ const Market = (function () {
     });
 
     const roundEl = document.getElementById('round-display');
-    if (roundEl) roundEl.textContent = `Ronda ${currentRound}/${TOTAL_ROUNDS}`;
+    if (roundEl) roundEl.textContent = `Ronda ${currentRound}`;
 
     updateChart();
   }
@@ -167,9 +169,11 @@ const Market = (function () {
           label: a.name,
           data: a.history || [a.price],
           borderColor: colors[a.id] || '#64748b',
-          backgroundColor: 'transparent',
+          backgroundColor: colors[a.id] || '#64748b',
           tension: 0.3,
-          fill: false
+          fill: false,
+          pointRadius: 8,
+          pointHoverRadius: 12
         }))
       },
       options: {
@@ -200,23 +204,25 @@ const Market = (function () {
         label: a.name,
         data: a.history || [a.price],
         borderColor: colors[a.id] || '#64748b',
-        backgroundColor: 'transparent',
+        backgroundColor: colors[a.id] || '#64748b',
         tension: 0.3,
-        fill: false
+        fill: false,
+        pointRadius: 8,
+        pointHoverRadius: 12
       };
     });
     chart.update('none');
   }
 
   function startTimer() {
-    timerStart = parseInt(localStorage.getItem(STORAGE_KEYS.timerStart) || '0', 10);
-    if (!timerStart) {
-      timerStart = Date.now();
-      localStorage.setItem(STORAGE_KEYS.timerStart, String(timerStart));
+    roundStartTime = parseInt(localStorage.getItem(STORAGE_KEYS.roundStartTime) || '0', 10);
+    if (!roundStartTime) {
+      roundStartTime = Date.now();
+      localStorage.setItem(STORAGE_KEYS.roundStartTime, String(roundStartTime));
     }
 
     function tick() {
-      const elapsed = Math.floor((Date.now() - timerStart) / 1000);
+      const elapsed = Math.floor((Date.now() - roundStartTime) / 1000);
       const m = Math.floor(elapsed / 60);
       const s = elapsed % 60;
       const el = document.getElementById('timer');
@@ -235,7 +241,7 @@ const Market = (function () {
     if (valid) {
       assets = saved.assets;
       currentRound = saved.round || 1;
-      timerStart = saved.timerStart ? parseInt(saved.timerStart, 10) : null;
+      roundStartTime = saved.roundStartTime ? parseInt(saved.roundStartTime, 10) : null;
     } else {
       assets = ASSET_IDS.map(id => {
         const config = ASSET_CONFIG[id];
@@ -257,6 +263,32 @@ const Market = (function () {
 
     const nextBtn = document.getElementById('next-round-btn');
     if (nextBtn) nextBtn.onclick = () => nextRound();
+
+    const resetBtn = document.getElementById('reset-btn');
+    if (resetBtn) resetBtn.onclick = () => resetMarket();
+  }
+
+  function resetMarket() {
+    assets = ASSET_IDS.map(id => {
+      const config = ASSET_CONFIG[id];
+      return {
+        id,
+        name: config.name,
+        icon: config.icon,
+        price: config.initialPrice,
+        history: [config.initialPrice]
+      };
+    });
+    currentRound = 1;
+    lastChange = {};
+    roundStartTime = Date.now();
+
+    localStorage.setItem(STORAGE_KEYS.assets, JSON.stringify(assets));
+    localStorage.setItem(STORAGE_KEYS.round, '1');
+    localStorage.setItem(STORAGE_KEYS.roundStartTime, String(roundStartTime));
+
+    updateUI();
+    updateChart();
   }
 
   document.addEventListener('DOMContentLoaded', initMarket);

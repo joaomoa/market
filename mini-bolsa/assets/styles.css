@@ -1,0 +1,66 @@
+/* Mini Bolsa para Crianças - Estilos amigáveis */
+
+:root {
+  --font-display: 'Nunito', 'Comic Sans MS', 'Chalkboard SE', rounded, sans-serif;
+  --color-up: #22c55e;
+  --color-down: #ef4444;
+  --color-stable: #3b82f6;
+}
+
+body {
+  font-family: var(--font-display);
+}
+
+.font-display {
+  font-family: var(--font-display) !important;
+}
+
+/* Asset cards - grandes e visíveis para projetor */
+.asset-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.asset-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Botões Compra/Venda - grandes para crianças */
+.btn {
+  @apply px-4 py-3 rounded-xl font-bold text-sm transition-colors;
+}
+
+.btn-buy {
+  @apply bg-green-500 text-white hover:bg-green-600 active:scale-95;
+}
+
+.btn-sell {
+  @apply bg-red-500 text-white hover:bg-red-600 active:scale-95;
+}
+
+/* Indicadores de preço */
+.price-up {
+  color: var(--color-up) !important;
+}
+
+.price-down {
+  color: var(--color-down) !important;
+}
+
+.price-stable {
+  color: var(--color-stable) !important;
+}
+
+/* Eventos no painel admin */
+.event-btn {
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.event-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.event-btn:active {
+  transform: translateY(0);
+}

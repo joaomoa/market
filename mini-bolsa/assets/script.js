@@ -35,7 +35,7 @@ const Market = (function () {
       id: 'carro',
       name: 'Carro',
       icon: '🚗',
-      initialPrice: 3,
+      initialPrice: 10,
       // Bens de consumo: descem quase sempre ou mantêm
       changes: [-1, -1, -1, -1, 0, 0, 0]
     }
@@ -43,7 +43,14 @@ const Market = (function () {
 
   const ASSET_IDS = ['gold', 'house', 'empresa', 'carro'];
   const MIN_PRICE = 1;
-  const MAX_PRICE = 10;
+  const MAX_PRICE = 20;
+  const CHART_MAX_SMALL = 10;
+  const CHART_MAX_LARGE = 20;
+
+  function getChartYMax() {
+    const anyAbove10 = assets.some(a => (a.history || [a.price]).some(p => p > 10));
+    return anyAbove10 ? CHART_MAX_LARGE : CHART_MAX_SMALL;
+  }
   const MAX_HISTORY = 20;
 
   let assets = [];
@@ -186,7 +193,7 @@ const Market = (function () {
         scales: {
           y: {
             min: MIN_PRICE,
-            max: MAX_PRICE,
+            max: getChartYMax(),
             ticks: { stepSize: 1 }
           }
         }
@@ -197,6 +204,7 @@ const Market = (function () {
   function updateChart() {
     if (!chart) return;
     const maxLen = Math.max(...assets.map(a => (a.history || []).length), 1);
+    chart.options.scales.y.max = getChartYMax();
     chart.data.labels = Array.from({ length: maxLen }, (_, i) => `P${i + 1}`);
     chart.data.datasets = assets.map(a => {
       const colors = { gold: '#f59e0b', house: '#3b82f6', empresa: '#8b5cf6', carro: '#f97316' };

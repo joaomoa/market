@@ -487,6 +487,12 @@ const Market = (function () {
     const roundEl = document.getElementById('round-display');
     if (roundEl) roundEl.textContent = `Ronda ${currentRound}`;
 
+    const showIntro = currentRound === 1;
+    const introEl = document.getElementById('intro-section');
+    const chartSectionEl = document.getElementById('chart-section');
+    if (introEl) introEl.classList.toggle('hidden', !showIntro);
+    if (chartSectionEl) chartSectionEl.classList.toggle('hidden', showIntro);
+
     const newsEl = document.getElementById('news-section');
     if (newsEl) {
       if (currentNews.length > 0) {
@@ -497,13 +503,16 @@ const Market = (function () {
           </ul>
         `;
         newsEl.classList.remove('hidden');
-      } else {
+      } else if (!showIntro) {
         newsEl.innerHTML = '<p class="text-slate-500 italic">Clica em "Próxima Ronda" para ver as notícias!</p>';
         newsEl.classList.remove('hidden');
+      } else {
+        newsEl.classList.add('hidden');
       }
     }
 
     updateChart();
+    if (!showIntro && chart) chart.resize();
   }
 
   function initChart() {

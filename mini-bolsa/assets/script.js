@@ -378,6 +378,7 @@ const Market = (function () {
 
   let assets = [];
   let currentRound = 1;
+  let hasStarted = false; // false = intro, true = chart visível (valores iniciais ou evolução)
   let lastChange = {};
   let currentNews = [];
   let chart = null;
@@ -390,7 +391,8 @@ const Market = (function () {
     round: 'mini-bolsa-round',
     roundStartTime: 'mini-bolsa-round-start',
     version: 'mini-bolsa-version',
-    news: 'mini-bolsa-news'
+    news: 'mini-bolsa-news',
+    hasStarted: 'mini-bolsa-has-started'
   };
 
   function loadFromStorage() {
@@ -402,7 +404,8 @@ const Market = (function () {
         const round = parseInt(localStorage.getItem(STORAGE_KEYS.round) || '1', 10);
         const roundStartTime = localStorage.getItem(STORAGE_KEYS.roundStartTime);
         const news = JSON.parse(localStorage.getItem(STORAGE_KEYS.news) || '[]');
-        return { assets: stored, round, roundStartTime, news };
+        const hasStarted = localStorage.getItem(STORAGE_KEYS.hasStarted) === 'true';
+        return { assets: stored, round, roundStartTime, news, hasStarted };
       }
     } catch (e) {
       console.warn('Erro a carregar localStorage:', e);
@@ -417,6 +420,7 @@ const Market = (function () {
       localStorage.setItem(STORAGE_KEYS.version, String(STORAGE_VERSION));
       if (roundStartTime) localStorage.setItem(STORAGE_KEYS.roundStartTime, String(roundStartTime));
       if (currentNews.length) localStorage.setItem(STORAGE_KEYS.news, JSON.stringify(currentNews));
+      localStorage.setItem(STORAGE_KEYS.hasStarted, hasStarted ? 'true' : 'false');
     } catch (e) {
       console.warn('Erro a guardar localStorage:', e);
     }
@@ -454,13 +458,22 @@ const Market = (function () {
     updateUI();
   }
 
-  function nextRound() {
-    currentRound += 1;
-    roundStartTime = Date.now();
-    localStorage.setItem(STORAGE_KEYS.roundStartTime, String(roundStartTime));
-    applyRandomEvolution();
-    saveToStorage();
-    updateUI();
+  function onMainButtonClick() {
+    if (!hasStarted) {
+      // Estado 1 -> 2: "Vamos começar" - mostrar gráfico com valores iniciais
+      hasStarted = true;
+      saveToStorage();
+      updateUI();
+      if (chart) chart.resize();
+    } else {
+      // Estado 2 ou 3+ -> próxima ronda (evolução)
+      currentRound += 1;
+      roundStartTime = Date.now();
+      localStorage.setItem(STORAGE_KEYS.roundStartTime, String(roundStartTime));
+      applyRandomEvolution();
+      saveToStorage();
+      updateUI();
+    }
   }
 
   function updateUI() {
@@ -487,13 +500,17 @@ const Market = (function () {
     const roundEl = document.getElementById('round-display');
     if (roundEl) roundEl.textContent = `Ronda ${currentRound}`;
 
-    const showIntro = currentRound === 1;
+    // Estados: 1=intro, 2=gráfico valores iniciais, 3+=gráfico+notícias
     const introEl = document.getElementById('intro-section');
     const chartSectionEl = document.getElementById('chart-section');
-    if (introEl) introEl.classList.toggle('hidden', !showIntro);
-    if (chartSectionEl) chartSectionEl.classList.toggle('hidden', showIntro);
-
     const newsEl = document.getElementById('news-section');
+    const btnEl = document.getElementById('next-round-btn');
+
+    if (introEl) introEl.classList.toggle('hidden', hasStarted);
+    if (chartSectionEl) chartSectionEl.classList.toggle('hidden', !hasStarted);
+
+    if (btnEl) btnEl.textContent = hasStarted ? 'Próxima Ronda' : 'Vamos começar';
+
     if (newsEl) {
       if (currentNews.length > 0) {
         newsEl.innerHTML = `
@@ -503,16 +520,13 @@ const Market = (function () {
           </ul>
         `;
         newsEl.classList.remove('hidden');
-      } else if (!showIntro) {
-        newsEl.innerHTML = '<p class="text-slate-500 italic">Clica em "Próxima Ronda" para ver as notícias!</p>';
-        newsEl.classList.remove('hidden');
       } else {
         newsEl.classList.add('hidden');
       }
     }
 
     updateChart();
-    if (!showIntro && chart) chart.resize();
+    if (hasStarted && chart) chart.resize();
   }
 
   function initChart() {
@@ -627,6 +641,7 @@ const Market = (function () {
       currentRound = saved.round || 1;
       roundStartTime = saved.roundStartTime ? parseInt(saved.roundStartTime, 10) : null;
       currentNews = saved.news || [];
+      hasStarted = saved.hasStarted || saved.round > 1;
     } else {
       assets = ASSET_IDS.map(id => {
         const config = ASSET_CONFIG[id];
@@ -647,7 +662,7 @@ const Market = (function () {
     startTimer();
 
     const nextBtn = document.getElementById('next-round-btn');
-    if (nextBtn) nextBtn.onclick = () => nextRound();
+    if (nextBtn) nextBtn.onclick = () => onMainButtonClick();
 
     const resetBtn = document.getElementById('reset-btn');
     if (resetBtn) resetBtn.onclick = () => resetMarket();
@@ -665,12 +680,14 @@ const Market = (function () {
       };
     });
     currentRound = 1;
+    hasStarted = false;
     lastChange = {};
     currentNews = [];
     roundStartTime = Date.now();
 
     localStorage.setItem(STORAGE_KEYS.assets, JSON.stringify(assets));
     localStorage.removeItem(STORAGE_KEYS.news);
+    localStorage.setItem(STORAGE_KEYS.hasStarted, 'false');
     localStorage.setItem(STORAGE_KEYS.round, '1');
     localStorage.setItem(STORAGE_KEYS.version, String(STORAGE_VERSION));
     localStorage.setItem(STORAGE_KEYS.roundStartTime, String(roundStartTime));

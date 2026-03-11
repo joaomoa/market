@@ -62,7 +62,7 @@
       </div>
     </section>
 
-    <!-- Intro (mostra ao iniciar ou após reset) -->
+    <!-- Intro (estado inicial: explicar mercado) -->
     <section id="intro-section" class="mb-8 bg-white rounded-xl p-8 shadow text-left">
       <div class="max-w-2xl mx-auto">
         <h2 class="text-2xl font-bold text-sky-800 mb-4 flex items-center gap-2">
@@ -105,7 +105,7 @@
       </div>
     </section>
 
-    <!-- Gráfico (mostra quando o jogo já começou, após primeira ronda) -->
+    <!-- Gráfico (estado 2: valores iniciais | estado 3+: evolução) -->
     <section id="chart-section" class="mb-8 hidden">
       <div class="bg-white rounded-xl p-4 shadow">
         <canvas id="chart-all" height="200"></canvas>
@@ -120,7 +120,7 @@
     <!-- Footer -->
     <footer class="text-center py-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
       <button id="next-round-btn" class="px-12 py-4 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xl transition-colors">
-        PRÓXIMA RONDA
+        Vamos começar
       </button>
       <button id="reset-btn" class="px-8 py-3 bg-slate-500 hover:bg-slate-600 text-white font-bold rounded-xl transition-colors">
         RESET

@@ -552,10 +552,10 @@ const Market = (function () {
     for (let i = 0; i < maxLen; i++) labels.push(`P${i + 1}`);
 
     const colors = {
-      gold: '#f59e0b',
-      house: '#3b82f6',
-      empresa: '#8b5cf6',
-      carro: '#f97316'
+      gold: '#f59e0b',    // amber - ouro
+      house: '#78716c',   // stone - casa
+      empresa: '#64748b', // slate - edifício
+      carro: '#dc2626'    // red - carro
     };
 
     chart = new Chart(canvas.getContext('2d'), {
@@ -607,7 +607,7 @@ const Market = (function () {
     chart.options.scales.y.ticks.callback = (v) => Number.isInteger(v) ? v : '';
     chart.data.labels = Array.from({ length: maxLen }, (_, i) => `P${i + 1}`);
     chart.data.datasets = assets.map(a => {
-      const colors = { gold: '#f59e0b', house: '#3b82f6', empresa: '#8b5cf6', carro: '#f97316' };
+      const colors = { gold: '#f59e0b', house: '#78716c', empresa: '#64748b', carro: '#dc2626' };
       return {
         label: a.name,
         data: a.history || [a.price],

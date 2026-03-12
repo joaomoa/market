@@ -44,6 +44,14 @@ const Market = (function () {
   const ASSET_IDS = ['gold', 'house', 'empresa', 'carro'];
   const MIN_PRICE = 1;
 
+  /** Explicações iniciais (sem mudança, só contexto) */
+  const NOTICIAS_INICIAIS = [
+    { id: 'gold', name: 'Ouro', icon: '🟡', text: 'Ouro: escasso, as pessoas escolhem guardá-lo. O mercado valoriza-o conforme a procura.' },
+    { id: 'house', name: 'Casa', icon: '🏠', text: 'Casa: construir demora, usa materiais e mão-de-obra. Depende da oferta e da procura.' },
+    { id: 'empresa', name: 'Empresa', icon: '🏢', text: 'Empresa: alguém arriscou criar algo. Vale o que o mercado achar que vale.' },
+    { id: 'carro', name: 'Carro', icon: '🚗', text: 'Carro: bem de consumo que desgasta. Há muitos à venda, as pessoas decidem se compram.' }
+  ];
+
   /** Notícias inventadas, simples para crianças de 6 anos, explicam a evolução */
   const NOTICIAS = {
     gold: {
@@ -517,6 +525,14 @@ const Market = (function () {
           <h3 class="text-lg font-bold text-slate-700 mb-3">📰 Notícias desta ronda</h3>
           <ul class="space-y-2 text-slate-600">
             ${currentNews.map(n => `<li class="flex items-start gap-2"><span class="text-2xl">${n.icon}</span><span>${n.text}</span></li>`).join('')}
+          </ul>
+        `;
+        newsEl.classList.remove('hidden');
+      } else if (hasStarted) {
+        newsEl.innerHTML = `
+          <h3 class="text-lg font-bold text-slate-700 mb-3">💡 Cada um em poucas palavras</h3>
+          <ul class="space-y-2 text-slate-600">
+            ${NOTICIAS_INICIAIS.map(n => `<li class="flex items-start gap-2"><span class="text-2xl">${n.icon}</span><span>${n.text}</span></li>`).join('')}
           </ul>
         `;
         newsEl.classList.remove('hidden');

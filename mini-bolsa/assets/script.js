@@ -18,7 +18,7 @@ const Market = (function () {
     house: {
       id: 'house',
       name: 'Casa',
-      icon: '🏠',
+      icon: '🏡',
       initialPrice: 5,
       // Sobe devagar, às vezes um pouco mais rápido, raramente desce
       changes: [-1, 0, 1, 1, 1, 1, 2]
@@ -47,7 +47,7 @@ const Market = (function () {
   /** Explicações iniciais (sem mudança, só contexto) */
   const NOTICIAS_INICIAIS = [
     { id: 'gold', name: 'Ouro', icon: '🟡', text: 'Ouro: escasso, as pessoas escolhem guardá-lo. O mercado valoriza-o conforme a procura.' },
-    { id: 'house', name: 'Casa', icon: '🏠', text: 'Casa: construir demora, usa materiais e mão-de-obra. Depende da oferta e da procura.' },
+    { id: 'house', name: 'Casa', icon: '🏡', text: 'Casa: construir demora, usa materiais e mão-de-obra. Depende da oferta e da procura.' },
     { id: 'empresa', name: 'Empresa', icon: '🏢', text: 'Empresa: alguém arriscou criar algo. Vale o que o mercado achar que vale.' },
     { id: 'carro', name: 'Carro', icon: '🚗', text: 'Carro: bem de consumo que desgasta. Há muitos à venda, as pessoas decidem se compram.' }
   ];
@@ -553,8 +553,8 @@ const Market = (function () {
 
     const colors = {
       gold: '#f59e0b',    // amber - ouro
-      house: '#78716c',   // stone - casa
-      empresa: '#64748b', // slate - edifício
+      house: '#059669',   // emerald - casa (verde)
+      empresa: '#64748b', // slate - empresa
       carro: '#dc2626'    // red - carro
     };
 
@@ -607,7 +607,7 @@ const Market = (function () {
     chart.options.scales.y.ticks.callback = (v) => Number.isInteger(v) ? v : '';
     chart.data.labels = Array.from({ length: maxLen }, (_, i) => `P${i + 1}`);
     chart.data.datasets = assets.map(a => {
-      const colors = { gold: '#f59e0b', house: '#78716c', empresa: '#64748b', carro: '#dc2626' };
+      const colors = { gold: '#f59e0b', house: '#059669', empresa: '#64748b', carro: '#dc2626' };
       return {
         label: a.name,
         data: a.history || [a.price],
